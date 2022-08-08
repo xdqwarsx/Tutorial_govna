@@ -1,0 +1,353 @@
+@name 38!zxc_Custom_Ropes_fix_1.3
+@inputs   
+@outputs I [Size ColorW1 ColorW2]:vector [Base WH1P WH2P LLP1 LLP2 HydrPoint1 HydrPoint2 SteerPlate1 SteerPlate2 Wheel1 Wheel2]:entity [X Y Z L SN HL STy WS] 
+@persist Show [Holos Types Types2 Types3]:table
+
+interval(10)
+runOnKeys(owner(), 1, array("O"))
+
+if(first())
+{
+    Base = entity():isWeldedTo()
+    Size = Base:boxSize()
+    
+    hint("Нажми 'O' или 'Щ'",1000)
+    entity():setName("Я связал твою маму верёвками
+    Убейся еблан")
+    
+    dPanel("Base",egpScrSize(owner()) / 2 - vec2(600, 500) / 2 ,vec2(600, 500))
+        dButton("Закрыть" , "Base" , vec2(539, 1.5) , vec2(60, 20))
+        dText("Base" , "Головой подумай чел.")
+        dShow("Base" , 0) 
+        dShowCloseButton("Base",0)
+          
+        dDropBox("Wheel_Size", "Base", vec2(108 , 30),80) 
+            dArray("Wheel_Size", array("15", "20", "25", "30", "35", "40", "45", "50", "55", "60"))
+                dSetSval("Wheel_Size","25")
+            dLabel("WS", "Base", vec2(30 , 35)) 
+                dText("WS", "Радиус колёс:")
+            
+        dDropBox("Wheel_Type", "Base", vec2(280 , 30),230) 
+            dArray("Wheel_Type", array("models/sprops/trans/wheel_b/t_wheel","models/sprops/trans/wheel_d/t_wheel"))
+                           dSetSval("Wheel_Type","models/sprops/trans/wheel_b/t_wheel")
+            dLabel("WT", "Base", vec2(220 , 35)) 
+                dText("WT", "Тип колёс")
+            
+        dLabel("Pos", "Base" , vec2(30 , 65)) 
+            dText("Pos", "Позиция колёс:")
+            
+            dLabel("xyz", "Base", vec2(30 , 75)) 
+                dText("xyz", 
+                "
+                Назад                                                                                             Вперёд
+                
+                Влево                                                                                             Вправо
+                
+                Вниз                                                                                                Вверх")
+                
+            dSlider("pos_x", "Base", vec2(-100 , 70), 510, -Size:x() / 2, Size:x() / 2)
+                dSetNval("pos_x", round(Size:x() / 2.5 * 2) / 2)
+                dButton("reset_x" , "Base" , vec2(450 , 83) , vec2(60, 20))
+                    dLabel(" to " + round(Size:x() / 2.5 * 2) / 2, "Base" , vec2(515 , 85)) 
+            dSlider("pos_y", "Base", vec2(-100 , 100), 510, 0, Size:y() / 2)
+                dSetNval("pos_y", round(Size:y() / 2.5 * 2) / 2)
+                dButton("reset_y" , "Base" , vec2(450 , 113) , vec2(60, 20))
+                    dLabel(" to " + round(Size:y() / 2.5 * 2) / 2, "Base" , vec2(515 , 115)) 
+            dSlider("offset_z", "Base", vec2(-100 , 130), 510, -100, 100)
+                dButton("reset_z" , "Base" , vec2(450 , 143) , vec2(60, 20))
+                    dLabel(" to zero", "Base" , vec2(515 , 145)) 
+            
+        dDropBox("Suspen_Type", "Base", vec2(108 , 175),80) 
+            dArray("Suspen_Type", array("1", "2", "3", "4"))
+                dSetSval("Suspen_Type","1")
+            dLabel("ST", "Base", vec2(30 , 180)) 
+                dText("ST", "Тип подвески:")
+                
+        dLabel("Length", "Base" , vec2(30 , 205)) 
+            dText("Length", "Длина рычагов:")
+            dSlider("Length_Num", "Base", vec2(-150 , 210), 600, Size:y() / 6, Size:y())
+                dSetNval("Length_Num", ceil(Size:y() / 3))
+                dButton("reset_l" , "Base" , vec2(450 , 223) , vec2(60, 20))
+                dLabel(" to " + ceil(Size:y() / 3), "Base" , vec2(515 , 225)) 
+            
+        dLabel("Stroke", "Base" , vec2(30 , 255)) 
+            dText("Stroke", "Ход подвески:")
+            dSlider("Stroke_Num", "Base", vec2(-150 , 260), 600, 40, 80)
+                dSetNval("Stroke_Num",60)
+                dButton("reset_s" , "Base" , vec2(450 , 273) , vec2(60, 20))
+                dLabel(" to " + 60, "Base" , vec2(515 , 275)) 
+                
+        dLabel("H_Length", "Base" , vec2(30 , 305)) 
+            dText("H_Length", "Длина Гидравлики:")
+            dSlider("Hydraulic_Length_Num", "Base", vec2(-150 , 310), 600, Size:y() / 6, Size:y())
+                dSetNval("Hydraulic_Length_Num",ceil(Size:y() / 4))
+                dButton("reset_hl" , "Base" , vec2(450 , 323) , vec2(60, 20))
+                dLabel(" to " + ceil(Size:y() / 4), "Base" , vec2(515 , 325)) 
+            
+        dButton("Create", "Base", vec2(2 , 460), vec2(596/2 , 38))
+
+        dButton("Spawn_Plates", "Base", vec2(2 + 596/2 , 460), vec2(596/2 , 38))
+
+    Types = table(
+        vec4(1,-1,-1,-1),
+        vec4(-1,1,-1,-1),
+        vec4(1,1,1,-1),
+        vec4(0,-1.41,-1.41,0)
+    )
+    
+    Types2 = table(
+        vec4(1,1,-1,1),
+        vec4(-1,1,-1,-1),
+        vec4(1,-1,1,1),
+        vec4(0,1.41,-1.41,0)
+    )
+    Types3 = table(
+        vec(0,1,1),
+        vec(1,0,1),
+        vec(-1,0,1),
+        vec(1/1.41,1/1.41,1)
+    )
+    
+    Holos = table(
+        Base:model(), vec4(vec(240),255),
+        "models/sprops/misc/axis_plane.mdl", vec4(vec(255),255),
+        "models/sprops/geometry/sphere_3.mdl", vec4(vec(0,240,0),255),
+        "models/sprops/geometry/sphere_3.mdl", vec4(vec(240,0,240),255),
+        "models/sprops/trans/wheel_b/t_wheel25.mdl", vec4(vec(60),255),
+        "models/sprops/trans/wheel_b/t_wheel25.mdl", vec4(vec(60),255),
+        "models/sprops/geometry/sphere_3.mdl", vec4(vec(240,0,240),255),
+        "models/sprops/geometry/sphere_3.mdl", vec4(vec(240,0,240),255),
+        "models/sprops/geometry/sphere_3.mdl", vec4(vec(0,240,0),255),
+        "models/sprops/geometry/sphere_3.mdl", vec4(vec(0,240,0),255),
+        "models/sprops/geometry/sphere_3.mdl", vec4(vec(0,240,240),255),
+        "models/sprops/geometry/sphere_3.mdl", vec4(vec(240,240,0),255),
+        "models/sprops/trans/wheel_b/t_wheel25.mdl", vec4(vec(240,240,0),255),
+        "models/sprops/trans/wheel_b/t_wheel25.mdl", vec4(vec(0,240,240),255),
+        "models/sprops/geometry/sphere_3.mdl", vec4(vec(240,240,0),255),
+        "models/sprops/geometry/sphere_3.mdl", vec4(vec(0,240,240),255)
+    )
+    for(I=1,Holos:count())
+    {
+        local Side = I%2 ? -1 : 1
+        holoCreate(I)   
+        holoModel(I, Holos[I * 2 - 1, string])
+        holoAng(I, Base:toWorld(ang(0, 0, 0)))
+        holoParent(I, Base)
+        holoDisableShading(I, 1)
+        holoColor(I,Holos[I * 2, vector4])
+        
+        if(I < 2)
+        {   
+            holoMaterial(I, "models/wireframe")
+        }
+        if(I > 2)
+        {   
+            holoAng(I, Base:toWorld(ang(0, 90 - 90 * -Side, 0)))
+            holoPos(I,vec(5000000000000))
+            holoBodygroup(I, 1, 2)
+            holoEntity(I):setSubMaterial(1, "models/ihvtest/eyeball_l")
+            holoEntity(I):setSubMaterial(2, "models/wireframe")
+        }
+        if(I > 4 & I < 7)
+        {   
+            holoDisableShading(I, 0)
+            holoEntity(I):setSubMaterial(1, "models/ihvtest/eyeball_l")
+            holoEntity(I):setSubMaterial(2, "sprops/textures/sprops_metal5")
+        }
+        
+    
+    }
+}
+
+if(changed(owner():keyPressed("O")) & owner():keyPressed("O") | dClk("Закрыть"))
+{ 
+    Show = !Show
+    dShow("Base",Show)        
+    dColor("Base",random(50, 25),random(50, 25),random(50, 25), 200)
+    enableMouse(Show) 
+}
+
+if(changed(Base:isValid()) && Base:isValid()){
+    Base:setColor(vec4(vec(), 100))
+    holoPos(1, Base:toWorld(vec()))
+    holoPos(2, Base:toWorld(vec()))
+    holoScale(2, Base:boxSize():y() * vec(0.02))
+}
+
+if(changed(!Base:isPlayerHolding()) & !Base:isPlayerHolding()){
+    Base:setAng(ang(0,90,0))
+    Base:setPos(ceil(Base:pos()))
+    Base:propFreeze(!Base:isPlayerHolding())
+}
+
+if(Show){
+    
+    
+    L = ceil(dNval("Length_Num"))
+    SN = ceil(dNval("Stroke_Num"))
+    HL = ceil(dNval("Hydraulic_Length_Num")) / 1.41    
+    
+    WS = dSval("Wheel_Size"):toNumber()
+    WT = dSval("Wheel_Type")
+    STy = dSval("Suspen_Type"):toNumber()
+    Wheel_Model = WT + WS + ".mdl"
+    
+    X = ceil(dNval("pos_x"))
+    Y = ceil(dNval("pos_y") * 2) / 2
+    Z = (ceil(dNval("offset_z")) / 100) * WS / 2
+    
+    for(I=1,Holos:count())
+    {
+        holoVisible(I,players(),1)
+        holoVisible(I,owner(),1)
+        if(I > 2 & I != 5 & I != 6 & I != 13 & I != 14)
+        {
+            holoScale(I, vec(WS / 25))
+        }
+    }
+    for(I=3,4)
+    {
+        local Side = I%2 ? 1 : -1
+            
+        holoPos(I, Base:toWorld(vec(X, Y * Side, Z)))
+
+    }
+    for(I=5,6)
+    {
+        local Side = I%2 ? 1 : -1
+            
+        holoPos(I, Base:toWorld(vec(X, Y * Side, Z)))
+        holoModel(I, Wheel_Model)
+        holoScale(I, vec(1.001))
+
+    }
+    
+    
+    for(I=7,10)
+    {
+        local Side = I%2 ? 1 : -1
+        if(inrange(I, 9, 10))
+        {
+            holoPos(I, Base:toWorld(vec(X, Y, Z) - vec(Types2[STy,vector4][1+I%2*2], Types2[STy,vector4][2+I%2*2], 0) * L))
+        }else
+        {
+            holoPos(I, Base:toWorld(vec(X, -Y, Z) - vec(Types[STy,vector4][1+I%2*2], Types[STy,vector4][2+I%2*2], 0) * L))
+        }
+
+    }
+    for(I=11,12)
+    {
+        local Side = I%2 ? 1 : -1
+        holoPos(I, holoEntity(3 + I%2):toWorld(mix(holoEntity(3 + I%2):toLocal((holoEntity(8 + !(I%2)*2):pos() + holoEntity(7 + !(I%2)*2):pos()) / 2), vec(), SN/100)))
+
+    }
+    for(I=15,16)
+    {
+        local Side = I%2 ? 1 : -1       
+        holoPos(I, Base:toWorld(vec(X, Y * Side, 0) + vec(HL * 2, HL * -Side, HL * 2 + Z) * Types3[STy,vector]))
+
+    }
+        
+    if(dClk("reset_x"))
+    {
+        dSetNval("pos_x", ceil(Size:x() / 2.5 * 2) / 2)
+    }
+    if(dClk("reset_y"))
+    {
+        dSetNval("pos_y", ceil(Size:y() / 2.5 * 2) / 2)
+    }
+    if(dClk("reset_z"))
+    {
+        dSetNval("offset_z", 0)
+    }
+    if(dClk("reset_l"))
+    {
+        dSetNval("Length_Num", ceil(Size:y() / 3))
+    }
+    if(dClk("reset_s"))
+    {
+        dSetNval("Stroke_Num", 60)
+    }
+    if(dClk("reset_hl"))
+    {
+        dSetNval("Hydraulic_Length_Num", ceil(Size:y() / 4))
+    }
+}
+
+    for(I=13,14)
+    {
+        local Side = I%2 ? 1 : -1
+        holoPos(I, Base:toWorld((vec(X, Y * Side, 0) + L * Types3[STy,vector] * vec(1, -1 * Side,0)) + vec(sin(cos(curtime() * 30) * (90 * (SN/100)) - 90), sin(cos(curtime() * 30) * (90 * (SN/100)) - 90) * -Side, cos(cos(curtime() * 30) * (90 * (SN/100)) - 90)) * Types3[STy,vector] * ((L^2)+(Z^2))^0.5))
+        holoModel(I, Wheel_Model)
+    }
+
+if(dClk("Create"))
+{
+    
+    Base:soundPlay(1,0,"garrysmod/content_downloaded.wav") 
+    
+    timer("Spawn_wheel1",100)
+    timer("Spawn_wheel2",200)
+    timer("Hydr",300)
+    ColorW1 = randvec(50,100) * vec(1,0.75,0.25) + random(100)
+    ColorW2 = randvec(50,100) * vec(0.75,1,0.25) + random(100)
+    #rope(number index,entity ent1,vector v1,entity ent2,vector v2,number addlength,number width,string mat,number rigid)
+
+
+}
+if(clk("Spawn_wheel1")){
+    
+    Base:soundPlay(2,0,"garrysmod/ui_click.wav") 
+    
+    Wheel1 = propSpawn(Wheel_Model, holoEntity(5):pos(), ang(0,90,0),1)
+    Wheel1:makeSpherical(Wheel1:boxSize():x()/2)
+    Wheel1:setBodygroup(1,2)
+    Wheel1:setSkin(1)
+    Wheel1:setColor(ColorW1)
+    
+    rope(1,Wheel1,vec(),Base,Base:toLocal(ceil(holoEntity(9):pos())),0,0,"cable/rope",1)
+    rope(2,Wheel1,vec(),Base,Base:toLocal(ceil(holoEntity(10):pos())),0,0,"cable/rope",1)
+    rope(3,Wheel1,vec(),Base,Base:toLocal(ceil(holoEntity(12):pos())),0,0,"cable/rope",1)
+}
+
+if(clk("Spawn_wheel2")){
+    Base:soundPlay(3,0,"garrysmod/ui_click.wav") 
+    
+    Wheel2 = propSpawn(Wheel_Model, holoEntity(6):pos(), ang(0,-90,0),1)
+    Wheel2:makeSpherical(Wheel1:boxSize():x()/2)
+    Wheel2:setBodygroup(1,2)
+    Wheel2:setSkin(1)
+    Wheel2:setColor(ColorW2)
+    
+    rope(1,Wheel2,vec(),Base,Base:toLocal(ceil(holoEntity(7):pos())),0,0,"cable/rope",1)
+    rope(2,Wheel2,vec(),Base,Base:toLocal(ceil(holoEntity(8):pos())),0,0,"cable/rope",1)
+    rope(3,Wheel2,vec(),Base,Base:toLocal(ceil(holoEntity(11):pos())),0,0,"cable/rope",1)
+}
+
+
+if(clk("Hydr")){
+    
+    Base:soundPlay(4,0,"buttons/button24.wav") 
+    
+    Hydr1 = propSpawn("models/sprops/geometry/fhex_12.mdl",ceil(holoEntity(15):pos()),ang(0),1)
+    Hydr1:setColor(ColorW1)
+    
+    Hydr2 = propSpawn("models/sprops/geometry/fhex_12.mdl",ceil(holoEntity(16):pos()),ang(0),1)
+    Hydr2:setColor(ColorW2)
+}
+
+if(dClk("Spawn_Plates"))
+{
+
+    Base:soundPlay(5,0,"buttons/button6.wav") 
+    
+    SteerPlate1 = propSpawn("models/sprops/geometry/fhex_12.mdl",Base:toWorld(vec(round(X/12)*12,Size:y()+10,0)),ang(0,90,0),1)
+    SteerPlate1:setColor(ColorW1)
+    SteerPlate2 = propSpawn("models/sprops/geometry/fhex_12.mdl",Base:toWorld(vec(round(X/12)*12,Size:y(),0)),ang(0,90,0),1)
+    SteerPlate2:setColor(ColorW2)
+
+}
+
+
+
+

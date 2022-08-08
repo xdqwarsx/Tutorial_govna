@@ -1,0 +1,74 @@
+@name steering .hemp.hex 
+@inputs [Chair Base Plt_FrontRight Plt_FrontLeft Plt_Rear ]:entity 
+@inputs [Hydraulic_FrontLeft Hydraulic_FrontRight Hydraulic_RearLeft Hydraulic_RearRight]:wirelink
+@outputs Steering_Angle Kph  T BaseVel BVel 
+@persist Length_Front Length_Rear Constant_Front Constant_Rear Damping_Front Damping_Rear 
+@persist [Steer A D Steering_Lock] [Camder_Front Caster Accerman] 
+@trigger  BVel 
+
+interval(20)
+if( first() | dupefinished() ){
+
+    Length_Front = 55
+    Constant_Front = 14000
+    Damping_Front = 3000
+
+    Length_Rear = 55
+    Constant_Rear = 14000
+    Damping_Rear = 2900 
+
+    Steering_Lock = 65
+    Camder_Front = 0
+    Accerman = 10
+    Caster = 20
+    
+    
+    Hydraulic_FrontLeft["Length",number]=Length_Front
+    Hydraulic_FrontRight["Length",number]=Length_Front
+    Hydraulic_RearLeft["Length",number]=Length_Rear
+    Hydraulic_RearRight["Length",number]=Length_Rear
+    Hydraulic_FrontLeft["Constant",number]=Constant_Front
+    Hydraulic_FrontRight["Constant",number]=Constant_Front
+    Hydraulic_RearLeft["Constant",number]=Constant_Rear
+    Hydraulic_RearRight["Constant",number]=Constant_Rear
+    Hydraulic_FrontLeft["Damping",number]=Damping_Front
+    Hydraulic_FrontRight["Damping",number]=Damping_Front
+    Hydraulic_RearLeft["Damping",number]=Damping_Rear
+    Hydraulic_RearRight["Damping",number]=Damping_Rear
+    
+
+}
+
+A = Chair:driver():keyPressed("A")
+D = Chair:driver():keyPressed("D")
+    
+if (Plt_FrontRight:isFrozen()|Plt_FrontLeft:isFrozen()) {
+
+    Steer += (D-A) * 2.2 + (Base:angVel():yaw()/25 - Base:velL():y() / 600 )* sign(Base:velL():x()+150) 
+
+    BVel = min(Base:vel():length()/20000+1,3)
+    Steer = Steer / BVel
+    Steer = clamp(Steer,-Steering_Lock,Steering_Lock)
+    Steering_Angle += ( Steer - Steering_Angle ) * 0.96
+
+    if( inrange(Steering_Angle,-3,3) ) {
+        BVel = 1
+        Steering_Angle += clamp(0 - Steering_Angle, -1, 1) 
+    }
+
+    Plt_FrontRight:setAng(Base:toWorld(ang(0,-Steering_Angle-sin(Steering_Angle)^2*Accerman,Camder_Front-Steering_Angle/Steering_Lock*-Caster)))
+    Plt_FrontLeft:setAng(Base:toWorld(ang(0,-Steering_Angle+sin(Steering_Angle)^2*Accerman,-Camder_Front-Steering_Angle/Steering_Lock*-Caster)))
+
+    Plt_Rear:setAng( Base:toWorld(ang()) )
+}else{
+    Steer = 0
+    Steering_Angle = 0
+    Plt_FrontRight:setAng(Base:toWorld(ang(0,0,0)))
+    Plt_FrontRight:propFreeze(!Plt_FrontRight:isPlayerHolding()|!Plt_FrontRight:isFrozen())
+    Plt_FrontLeft:setAng(Base:toWorld(ang(0,0,0)))
+    Plt_FrontLeft:propFreeze(!Plt_FrontLeft:isPlayerHolding()|!Plt_FrontLeft:isFrozen())
+
+    Plt_Rear:setAng(Base:toWorld(ang(0,0,0)))
+    Plt_Rear:propFreeze(!Plt_Rear:isPlayerHolding()|!Plt_Rear:isFrozen())
+}
+
