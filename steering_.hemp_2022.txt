@@ -1,0 +1,51 @@
+@name steering .hemp 2022
+@inputs [Base Chair E1 E2 E3 E4]:entity
+@outputs SteerAngle CounterSteer
+@persist [Steer A D Lock] [Camber Caster Accerman] [Acos Dot]
+
+if (first() | dupefinished())
+{ 
+    runOnTick(1)
+
+    Camber = 0 #razval
+    Caster = 0
+    Accerman = 0
+    Lock = 65    
+}
+
+A = Chair:driver():keyPressed("A")
+D = Chair:driver():keyPressed("D")
+
+Velocity = Base:vel()
+LocalVelocity = Base:velL()
+VelocityLength = LocalVelocity:length()
+
+Steer += (A - D) 
+Steer /= min(abs(LocalVelocity[1])/19000 + 1.01,2)
+Steer = clamp(Steer, -Lock, Lock)
+
+VelocityDirection = Velocity:normalized()
+AngleDirection = Base:forward()
+Dot = VelocityDirection:dot(AngleDirection)
+Acos = VelocityLength > 360 ? acos(abs(Dot)) : 0
+
+CounterSteer = Acos * sign(LocalVelocity[2])
+SteerAngle = Steer + CounterSteer
+SteerAngle = clamp(SteerAngle, -Lock, Lock)
+
+if (!E1:isPlayerHolding()) {
+    E1:setAng( Base:toWorld(ang(0, SteerAngle+sin(SteerAngle)^2*Accerman, Camber-SteerAngle/270*Caster)) )    
+    if(!E1:isFrozen()){ E1:propFreeze(1) }
+    }
+if (!E2:isPlayerHolding()) {
+    E2:setAng( Base:toWorld(ang(0, SteerAngle-sin(SteerAngle)^2*Accerman, -Camber-SteerAngle/270*Caster)) )       
+    if(!E2:isFrozen()){ E2:propFreeze(1)}
+    }
+if (!E3:isPlayerHolding()) {
+    E3:setAng( Base:toWorld(ang(0, 0, 0)) )       
+    if(!E3:isFrozen()){ E3:propFreeze(1)}
+    }
+if (!E4:isPlayerHolding()) {
+    E4:setAng( Base:toWorld(ang(0, 0, 0)) )       
+    if(!E4:isFrozen()){ E4:propFreeze(1)}
+    }
